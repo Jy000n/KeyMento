@@ -1,6 +1,18 @@
-venv/
+# Python cache
 __pycache__/
 *.pyc
-.vscode/a
+*.pyo
+*.pyd
+
+# 가상환경
+venv/
+.env/
+
+# VS Code 설정
+.vscode/
+
+# OS 파일
 .DS_Store
+Thumbs.db
+
 data/calibration.json
