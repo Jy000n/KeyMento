@@ -1,7 +1,7 @@
 import cv2
 
 from camera.capture import open_camera
-from calibration.calibration import calibrate
+from calibration.calibrator import calibrate
 from utils.transform import get_matrix, warp
 from keyboard.mapping import build_keys
 from ar.overlay import render
