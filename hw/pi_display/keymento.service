@@ -1,0 +1,17 @@
+[Unit]
+Description=KeyMento Raspberry Pi display receiver
+After=network-online.target graphical.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/Keymento
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+ExecStart=/home/pi/Keymento/.venv/bin/python /home/pi/Keymento/hw/pi_display/pi_receiver.py --fullscreen
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=graphical.target
