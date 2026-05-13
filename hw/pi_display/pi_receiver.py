@@ -33,6 +33,8 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Show the receiver window in fullscreen mode.",
     )
+    parser.add_argument("--width", type=int, default=0, help="Force output width in pixels (0 = auto).")
+    parser.add_argument("--height", type=int, default=0, help="Force output height in pixels (0 = auto).")
     return parser.parse_args()
 
 
@@ -49,6 +51,12 @@ def main() -> None:
     if args.fullscreen:
         cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
+    screen_w = args.width
+    screen_h = args.height
+    if args.fullscreen and (screen_w == 0 or screen_h == 0):
+        rect = cv2.getWindowImageRect(window_name)
+        screen_w, screen_h = rect[2], rect[3]
+
     print(f"Listening for KeyMento video on {args.host}:{args.port}")
 
     try:
@@ -59,6 +67,8 @@ def main() -> None:
                 continue
 
             frame = decode_frame(encoded_frame)
+            if args.fullscreen and screen_w > 0 and screen_h > 0:
+                frame = cv2.resize(frame, (screen_w, screen_h))
             cv2.imshow(window_name, frame)
 
             key = cv2.waitKey(1) & 0xFF

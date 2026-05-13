@@ -37,6 +37,31 @@ ip addr show wlan0
 
 Press `q` or `Esc` to stop the receiver.
 
+## Resolution Settings
+
+By default the receiver auto-sizes the window to match the incoming frame.
+Use the options below to override the output resolution.
+
+| Option | Default | Description |
+|---|---|---|
+| `--fullscreen` | off | Open the window in fullscreen mode |
+| `--width <px>` | 0 (auto) | Force output width in pixels |
+| `--height <px>` | 0 (auto) | Force output height in pixels |
+
+Fullscreen example (resolution detected automatically):
+
+```bash
+python3 hw/pi_display/pi_receiver.py --port 9999 --fullscreen
+```
+
+Fixed resolution example (e.g. 1280×720):
+
+```bash
+python3 hw/pi_display/pi_receiver.py --port 9999 --fullscreen --width 1280 --height 720
+```
+
+`--width` / `--height` without `--fullscreen` has no effect.
+
 ## Autostart With systemd
 
 ```bash
