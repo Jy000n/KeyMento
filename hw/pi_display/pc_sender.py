@@ -43,9 +43,10 @@ def main() -> None:
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open camera index {args.camera}")
 
+
     sender = PiDisplaySender(pi_ip=args.pi_ip, port=args.port, jpeg_quality=args.quality)
     print(f"Sending to {args.pi_ip}:{args.port}  (quality={args.quality}, camera={args.camera})")
-
+    
     try:
         while True:
             ok, frame = cap.read()
