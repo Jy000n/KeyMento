@@ -12,7 +12,7 @@ def get_answer_sheet(file_path):
         if msg.type == 'note_on' and msg.velocity > 0 and msg.note >= 60:
             sheet.append({'note': msg.note, 'time': absolute_time})
     return sheet
-
+    
 def main():
     filename = "head-shoulder-knee-and-toe.mid" 
     answers = get_answer_sheet(filename)
@@ -21,22 +21,36 @@ def main():
         print("정답지가 비어있습니다. MIDI 파일을 확인해주세요.")
         return
 
-    # 통계를 위한 변수 설정
-    current_idx = 0
-    correct_count = 0
-    wrong_count = 0
+    # === 통계 변수 초기화 ===
     total_notes = len(answers)
+    pitch_correct = 0
+    pitch_wrong = 0
+    
+    timing_stats = {'Perfect': 0, 'Great': 0, 'Good': 0, 'Miss': 0}
+    current_idx = 0
     
     midi_in = rtmidi.MidiIn()
     midi_in.open_port(0)
     
-    print(f"\n🎵 연주 시작! 총 {total_notes}개의 노트를 연주해야 합니다.")
-    print("-" * 40)
+    print(f"\n🎵 총 {total_notes}개의 노트를 연주해야 합니다.")
+    print("준비하세요! 3초 뒤 연주를 시작합니다...")
+    for i in range(3, 0, -1):
+        print(f"{i}...")
+        time.sleep(1)
+        
+    print("\n🎹 [START] 연주 시작!")
     print(f"👉 첫 번째 목표 건반: {answers[0]['note']}")
+    
+    # 곡 시작 기준 시간 기록
+    start_time = time.time()
 
     try:
         while current_idx < total_notes:
             timer_event = midi_in.get_message()
+            
+            # 현재 곡이 시작된 지 몇 초 지났는지 계산
+            current_elapsed_time = time.time() - start_time
+            target_time = answers[current_idx]['time']
             
             if timer_event:
                 message, _ = timer_event
@@ -44,37 +58,73 @@ def main():
                 
                 # 건반을 누르는 신호(Note On) 확인
                 if state == 144 and velocity > 0:
-                    target = answers[current_idx]['note']
+                    target_note = answers[current_idx]['note']
                     
-                    if note == target:
-                        print(f"✅ [Correct!] {note}번 성공")
-                        correct_count += 1
+                    # 1. 음계(Pitch) 판정
+                    if note == target_note:
+                        pitch_correct += 1
+                        pitch_msg = f"✅ [음정 O] {note}번"
                     else:
-                        print(f"❌ [Wrong!] 입력:{note} / 정답:{target}")
-                        wrong_count += 1
+                        pitch_wrong += 1
+                        pitch_msg = f"❌ [음정 X] 입력:{note} 정답:{target_note}"
+                        
+                    # 2. 박자(Timing) 판정 (+50ms 단위)
+                    time_diff = abs(current_elapsed_time - target_time)
                     
-                    # 맞든 틀리든 다음 노트 인덱스로 이동
+                    if time_diff <= 0.05:  # 50ms 이내
+                        timing_stats['Perfect'] += 1
+                        timing_msg = f"✨ Perfect! (오차: {time_diff:.3f}초)"
+                    elif time_diff <= 0.10: # 100ms 이내
+                        timing_stats['Great'] += 1
+                        timing_msg = f"👍 Great!  (오차: {time_diff:.3f}초)"
+                    elif time_diff <= 0.15: # 150ms 이내
+                        timing_stats['Good'] += 1
+                        timing_msg = f"👌 Good!   (오차: {time_diff:.3f}초)"
+                    else:                   # 150ms 초과
+                        timing_stats['Miss'] += 1
+                        timing_msg = f"☁️ Miss...  (오차: {time_diff:.3f}초)"
+                    
+                    # 실시간 결과 출력
+                    print(f"[{current_idx+1}/{total_notes}] {pitch_msg}  |  {timing_msg}")
+                    
+                    # 무조건 다음 인덱스로 이동
                     current_idx += 1
                     
-                    # 다음 음이 남아있다면 목표 출력
                     if current_idx < total_notes:
-                        print(f"👉 다음 목표: {answers[current_idx]['note']}")
+                        print(f"👉 다음 목표: {answers[current_idx]['note']}번")
             
-            time.sleep(0.01)
+            # CPU 과부하 방지용 미세 휴식 (0.001초 단위로 촘촘히 검사)
+            time.sleep(0.001)
 
-        # === 최종 결과 출력 ===
-        print("\n" + "="*40)
-        print("🎉 곡을 모두 완주하셨습니다!")
-        print("="*40)
+        # === 최종 결과 통계 산출 ===
+        print("\n" + "="*50)
+        print("🎉 곡 완주! 최종 분석 결과를 확인하세요 🎉")
+        print("="*50)
         
-        accuracy = (correct_count / total_notes) * 100
+        # 음계 정확도 계산
+        pitch_accuracy = (pitch_correct / total_notes) * 100
         
-        print(f"📊 나의 연주 결과")
-        print(f"- 전체 건반 수: {total_notes}개")
-        print(f"- 맞게 입력함: {correct_count}개")
-        print(f"- 틀리게 입력함: {wrong_count}개")
-        print(f"- 최종 정확도: {accuracy:.1f}%")
-        print("="*40)
+        # 박자 정확도 계산 (가중치 부여: Perfect 100, Great 80, Good 50, Miss 0)
+        timing_score_total = (timing_stats['Perfect'] * 100) + (timing_stats['Great'] * 80) + (timing_stats['Good'] * 50)
+        timing_accuracy = timing_score_total / total_notes
+        
+        # 종합 정확도 계산 (음계 50% + 박자 50%)
+        overall_accuracy = (pitch_accuracy + timing_accuracy) / 2
+        
+        print(f"🎵 전체 건반 수: {total_notes}개")
+        print("-" * 50)
+        print(f"🎹 [음계 분석] 정확도: {pitch_accuracy:.1f}%")
+        print(f"   - 정답 건반: {pitch_correct}개")
+        print(f"   - 오답 건반: {pitch_wrong}개")
+        print("-" * 50)
+        print(f"⏱️ [박자 분석] 정확도: {timing_accuracy:.1f}%")
+        print(f"   - ✨ Perfect (<50ms):  {timing_stats['Perfect']}개")
+        print(f"   - 👍 Great   (<100ms): {timing_stats['Great']}개")
+        print(f"   - 👌 Good    (<150ms): {timing_stats['Good']}개")
+        print(f"   - ☁️ Miss    (>150ms): {timing_stats['Miss']}개")
+        print("="*50)
+        print(f"🏆 [최종 종합 점수]: {overall_accuracy:.1f} 점 / 100 점")
+        print("="*50)
 
     except KeyboardInterrupt:
         print("\n연주가 중단되었습니다.")
