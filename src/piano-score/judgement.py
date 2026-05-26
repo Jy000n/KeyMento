@@ -2,6 +2,12 @@ import mido
 import rtmidi
 import time
 
+# MIDI 노트 번호 → 음이름 변환
+NOTE_NAMES = ['도', '도#', '레', '레#', '미', '파', '파#', '솔', '솔#', '라', '라#', '시']
+
+def note_to_name(note):
+    return NOTE_NAMES[note % 12]
+
 def get_answer_sheet(file_path):
     mid = mido.MidiFile(file_path)
     sheet = []
@@ -39,7 +45,7 @@ def main():
         time.sleep(1)
         
     print("\n🎹 [START] 연주 시작!")
-    print(f"👉 첫 번째 목표 건반: {answers[0]['note']}")
+    print(f"👉 첫 번째 목표 건반: {note_to_name(answers[0]['note'])}")
     
     # 곡 시작 기준 시간 기록
     start_time = time.time()
@@ -63,10 +69,10 @@ def main():
                     # 1. 음계(Pitch) 판정
                     if note == target_note:
                         pitch_correct += 1
-                        pitch_msg = f"✅ [음정 O] {note}번"
+                        pitch_msg = f"✅ [음정 O] {note_to_name(note)}"
                     else:
                         pitch_wrong += 1
-                        pitch_msg = f"❌ [음정 X] 입력:{note} 정답:{target_note}"
+                        pitch_msg = f"❌ [음정 X] 입력:{note_to_name(note)} 정답:{note_to_name(target_note)}"
                         
                     # 2. 박자(Timing) 판정 (+50ms 단위)
                     time_diff = abs(current_elapsed_time - target_time)
@@ -91,7 +97,7 @@ def main():
                     current_idx += 1
                     
                     if current_idx < total_notes:
-                        print(f"👉 다음 목표: {answers[current_idx]['note']}번")
+                        print(f"👉 다음 목표: {note_to_name(answers[current_idx]['note'])}")
             
             # CPU 과부하 방지용 미세 휴식 (0.001초 단위로 촘촘히 검사)
             time.sleep(0.001)
@@ -123,7 +129,7 @@ def main():
         print(f"   - 👌 Good    (<150ms): {timing_stats['Good']}개")
         print(f"   - ☁️ Miss    (>150ms): {timing_stats['Miss']}개")
         print("="*50)
-        print(f"🏆 [최종 종합 점수]: {o.venv\Scripts\activaverall_accuracy:.1f} 점 / 100 점")
+        print(f"🏆 [최종 종합 점수]: {overall_accuracy:.1f} 점 / 100 점")
         print("="*50)
 
     except KeyboardInterrupt:
