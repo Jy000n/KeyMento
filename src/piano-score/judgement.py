@@ -75,20 +75,23 @@ def main():
                         pitch_msg = f"❌ [음정 X] 입력:{note_to_name(note)} 정답:{note_to_name(target_note)}"
                         
                     # 2. 박자(Timing) 판정
-                    time_diff_ms = abs(current_elapsed_time - target_time) * 1000  # ms 단위
-                    
-                    if time_diff_ms <= 100:    # 100ms 이내
+                    # 부호 있는 오차: 음수(-) = 빠름, 양수(+) = 늦음
+                    time_diff_ms = (current_elapsed_time - target_time) * 1000
+                    abs_diff_ms = abs(time_diff_ms)
+                    sign = f"+{time_diff_ms:.0f}" if time_diff_ms >= 0 else f"{time_diff_ms:.0f}"
+
+                    if abs_diff_ms <= 1000:      # ±1000ms
                         timing_stats['Perfect'] += 1
-                        timing_msg = f"✨ Perfect! (오차: {time_diff_ms:.0f}ms)"
-                    elif time_diff_ms <= 200:  # 200ms 이내
+                        timing_msg = f"✨ Perfect! ({sign}ms)"
+                    elif abs_diff_ms <= 1500:    # ±1500ms
                         timing_stats['Great'] += 1
-                        timing_msg = f"👍 Great!  (오차: {time_diff_ms:.0f}ms)"
-                    elif time_diff_ms <= 350:  # 350ms 이내
+                        timing_msg = f"👍 Great!  ({sign}ms)"
+                    elif abs_diff_ms <= 2000:    # ±2000ms
                         timing_stats['Good'] += 1
-                        timing_msg = f"👌 Good!   (오차: {time_diff_ms:.0f}ms)"
-                    else:                      # 350ms 초과
+                        timing_msg = f"👌 Good!   ({sign}ms)"
+                    else:                       # ±2000ms 초과
                         timing_stats['Miss'] += 1
-                        timing_msg = f"☁️ Miss...  (오차: {time_diff_ms:.0f}ms)"
+                        timing_msg = f"☁️ Miss...  ({sign}ms)"
                     
                     # 실시간 결과 출력
                     print(f"[{current_idx+1}/{total_notes}] {pitch_msg}  |  {timing_msg}")
@@ -124,10 +127,10 @@ def main():
         print(f"   - 오답 건반: {pitch_wrong}개")
         print("-" * 50)
         print(f"⏱️ [박자 분석] 정확도: {timing_accuracy:.1f}%")
-        print(f"   - ✨ Perfect (<100ms): {timing_stats['Perfect']}개")
-        print(f"   - 👍 Great   (<200ms): {timing_stats['Great']}개")
-        print(f"   - 👌 Good    (<350ms): {timing_stats['Good']}개")
-        print(f"   - ☁️ Miss    (>350ms): {timing_stats['Miss']}개")
+        print(f"   - ✨ Perfect (±1000ms): {timing_stats['Perfect']}개")
+        print(f"   - 👍 Great   (±1500ms): {timing_stats['Great']}개")
+        print(f"   - 👌 Good    (±2000ms): {timing_stats['Good']}개")
+        print(f"   - ☁️ Miss    (±2000ms↑): {timing_stats['Miss']}개")
         print("="*50)
         print(f"🏆 [최종 종합 점수]: {overall_accuracy:.1f} 점 / 100 점")
         print("="*50)
