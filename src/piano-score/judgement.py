@@ -5,6 +5,9 @@ import time
 # MIDI 노트 번호 → 음이름 변환
 NOTE_NAMES = ['도', '도#', '레', '레#', '미', '파', '파#', '솔', '솔#', '라', '라#', '시']
 
+# 다음 목표 렌더링 타이밍 조절 가능
+HINT_AHEAD = 1.0  
+
 def note_to_name(note):
     return NOTE_NAMES[note % 12]
 
@@ -76,7 +79,7 @@ def main():
                         
                     # 2. 박자(Timing) 판정
                     # 부호 있는 오차: 음수(-) = 빠름, 양수(+) = 늦음
-                    time_diff_ms = (current_elapsed_time - target_time) * 1000
+                    time_diff_ms = (current_elapsed_time - target_time) * 1000 - 1000
                     abs_diff_ms = abs(time_diff_ms)
                     sign = f"+{time_diff_ms:.0f}" if time_diff_ms >= 0 else f"{time_diff_ms:.0f}"
 
