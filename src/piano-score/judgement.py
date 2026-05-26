@@ -12,7 +12,7 @@ def get_answer_sheet(file_path):
         if msg.type == 'note_on' and msg.velocity > 0 and msg.note >= 60:
             sheet.append({'note': msg.note, 'time': absolute_time})
     return sheet
-    
+
 def main():
     filename = "head-shoulder-knee-and-toe.mid" 
     answers = get_answer_sheet(filename)
@@ -123,7 +123,7 @@ def main():
         print(f"   - 👌 Good    (<150ms): {timing_stats['Good']}개")
         print(f"   - ☁️ Miss    (>150ms): {timing_stats['Miss']}개")
         print("="*50)
-        print(f"🏆 [최종 종합 점수]: {overall_accuracy:.1f} 점 / 100 점")
+        print(f"🏆 [최종 종합 점수]: {o.venv\Scripts\activaverall_accuracy:.1f} 점 / 100 점")
         print("="*50)
 
     except KeyboardInterrupt:
